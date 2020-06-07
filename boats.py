@@ -14,10 +14,9 @@ client_secret = "xeCqwxUqsKTZa2pmyKfFeTnL"
 
 
 def verify_jwt():
-    user_header = str(request.headers['Authorization'])
-    user_header = user_header[7::]
-
     try:
+        user_header = str(request.headers['Authorization'])
+        user_header = user_header[7::]
         req = requests.Request()
 
         id_info = id_token.verify_oauth2_token(
@@ -56,7 +55,7 @@ def boats_post_get():
                            "length": new_boats['length'],
                            "owner": user_sub,
                            "loads": "NULL",
-                           "self": new_boats["self"]}
+                           "self": request.base_url + str(new_boats.key.id)}
 
             res = make_response(json.dumps(boat_result))
             res.mimetype = 'application/json'
@@ -96,8 +95,8 @@ def boats_post_get():
         return res
 
 
-@bp.route('/<id>', methods=['PUT', 'PATCH'])
-def boats_put_patch(id):
+@bp.route('/<id>', methods=['PUT', 'PATCH', 'GET'])
+def boats_put_patch_get(id):
     if request.method == 'PUT':
         if 'application/json' in request.accept_mimetypes:
             user_sub = str(verify_jwt())
@@ -169,6 +168,41 @@ def boats_put_patch(id):
             res.status_code = 406
             return res
 
+    elif request.method == 'GET':
+        if 'application/json' in request.accept_mimetypes:
+            boats_key = client.key(constants.boats, int(id))
+            boats = client.get(key=boats_key)
+
+            if boats == None:
+                res = make_response('Not Found')
+                res.mimetype = 'application/json'
+                res.status_code = 404
+                return res
+
+            boat_result = {"id": str(boats.key.id),
+                           "name": boats['name'],
+                           "type": boats['type'],
+                           "length": boats['length'],
+                           "owner": boats['owner'],
+                           "loads": boats['loads'],
+                           "self": request.base_url + str(boats.key.id)}
+
+            res = make_response(json.dumps(boat_result))
+            res.mimetype = 'application/json'
+            res.status_code = 200
+            return res
+
+        else:
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
+    else:
+        res = make_response('Method Not Allowed')
+        res.mimetype = 'application/json'
+        res.status_code = 405
+        return res
+
 
 @bp.route('/<bid>/loads/<lid>', methods=['PUT', 'DELETE'])
 def add_remove_load(bid, lid):
@@ -204,7 +238,6 @@ def add_remove_load(bid, lid):
                 res.mimetype = 'application/json'
                 res.status_code = 404
                 return res
-
 
             if boats['loads'] == "NULL":
                 loads_list = []
@@ -313,7 +346,6 @@ def boats_delete(id):
                             entity.update({"boat": "NULL"})
                             client.put(entity)
 
-
                     res = make_response('No Content')
                     res.mimetype = 'application/json'
                     res.status_code = 204
@@ -333,7 +365,3 @@ def boats_delete(id):
         res.mimetype = 'application/json'
         res.status_code = 405
         return res
-
-
-
-

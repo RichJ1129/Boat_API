@@ -21,7 +21,8 @@ def loads_get_post():
         new_loads.update({'weight': content['weight'],
                           'content': content['content'],
                           'delivery_date': content['delivery_date'],
-                          'boat': 'NULL'})
+                          'boat': 'NULL',
+                          'self': request.base_url + str(new_loads.key.id)})
 
         client.put(new_loads)
 
@@ -37,6 +38,7 @@ def loads_get_post():
         res.status_code = 201
 
         return res
+
     elif request.method == 'GET':
         query = client.query(kind=constants.loads)
         q_limit = int(request.args.get('limit', '5'))
@@ -55,12 +57,21 @@ def loads_get_post():
         output = {"loads": results}
         if next_url:
             output["next"] = next_url
-        return json.dumps(output)
+
+        res = make_response(json.dumps(output))
+        res.mimetype = 'application/json'
+        res.status_code = 200
+
+        return res
+
     else:
-        return 'Method not recognized'
+        res = make_response('Method Not Allowed')
+        res.mimetype = 'application/json'
+        res.status_code = 405
+        return res
 
 
-@bp.route('/<id>', methods=['PUT', 'PATCH'])
+@bp.route('/<id>', methods=['PUT', 'PATCH', 'GET'])
 def loads_put_patch(id):
     if request.method == 'PUT':
         if 'application/json' in request.accept_mimetypes:
@@ -111,6 +122,29 @@ def loads_put_patch(id):
             res.mimetype = 'application/json'
             res.headers.set('Location', request.base_url + str(load.id))
             res.status_code = 303
+            return res
+    elif request.method == 'GET':
+        if 'application/json' in request.accept_mimetypes:
+            loads_key = client.key(constants.loads, int(id))
+            loads = client.get(key=loads_key)
+
+            if loads == None:
+                res = make_response('Not Found')
+                res.mimetype = 'application/json'
+                res.status_code = 404
+                return res
+
+            load_result = {"id": str(loads.key.id),
+                           "weight": loads['weight'],
+                           "content": loads['content'],
+                           "delivery_date": loads['delivery_date'],
+                           "boats": loads['boat'],
+                           "self": request.base_url + str(loads.key.id)
+                           }
+
+            res = make_response(json.dumps(load_result))
+            res.mimetype = 'application/json'
+            res.status_code = 200
             return res
 
         else:
