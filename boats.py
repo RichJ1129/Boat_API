@@ -45,17 +45,18 @@ def boats_post_get():
                               "type": content["type"],
                               "length": content["length"],
                               "loads": 'NULL',
-                              "owner": user_sub})
+                              "owner": user_sub,
+                              "self": request.base_url + str(new_boats.key.id)})
 
             client.put(new_boats)
 
             boat_result = {"id": str(new_boats.key.id),
-                           "name": content['name'],
-                           "type": content['type'],
-                           "length": content['length'],
+                           "name": new_boats['name'],
+                           "type": new_boats['type'],
+                           "length": new_boats['length'],
                            "owner": user_sub,
                            "loads": "NULL",
-                           "self": request.base_url + str(new_boats.key.id)}
+                           "self": new_boats["self"]}
 
             res = make_response(json.dumps(boat_result))
             res.mimetype = 'application/json'
@@ -265,7 +266,7 @@ def add_remove_load(bid, lid):
                            "length": boats['length'],
                            "owner": boats['owner'],
                            "loads": boats['loads'],
-                           "self": request.base_url + str(boats.key.id)}
+                           "self": boats['self']}
 
             res = make_response(json.dumps(boat_result))
             res.mimetype = 'application/json'
