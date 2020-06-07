@@ -60,29 +60,61 @@ def loads_get_post():
         return 'Method not recognized'
 
 
-@bp.route('/<id>', methods = ['PUT', 'DELETE', 'GET'])
-def loads_put_delete_get(id):
+@bp.route('/<id>', methods=['PUT', 'PATCH'])
+def loads_put_patch(id):
     if request.method == 'PUT':
-        content = request.get_json()
-        loads_key = client.key(constants.loads, int(id))
-        loads = client.get(key=loads_key)
-        loads.update({'weight': content['weight']})
-        client.put(loads)
-        return '', 200
-    elif request.method == 'DELETE':
-        key = client.key(constants.loads, int(id))
-        client.delete(key)
-        return '', 200
-    elif request.method == 'GET':
-        loads_key = client.key(constants.loads, int(id))
-        loads = client.get(key=loads_key)
-        return json.dumps(loads)
-    else:
-        return 'Method not recognized'
+        if 'application/json' in request.accept_mimetypes:
+            content = request.get_json()
+            load_key = client.key(constants.loads, int(id))
+            load = client.get(key=load_key)
 
+            load.update({"weight": content["weight"],
+                         "content": content["content"],
+                         "delivery_date": content["delivery_date"],
+                         "self": request.base_url + str(load.key.id)})
 
+            client.put(load)
 
+            res = make_response('See Other')
+            res.mimetype = 'application/json'
+            res.headers.set('Location', 'http://127.0.0.1/loads/' + str(load.id))
+            res.status_code = 303
+        else:
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
 
+    elif request.method == 'PATCH':
+        if 'application/json' in request.accept_mimetypes:
+            content = request.get_json()
+            load_key = client.key(constants.loads, int(id))
+            load = client.get(key=load_key)
 
+            content_keys = content.keys()
 
+            if 'weight' in content_keys:
+                load.update({"weight": content["weight"]})
+            elif 'content' in content_keys:
+                load.update({"content": content["content"]})
+            elif 'delivery_date' in content_keys:
+                load.update({"delivery_date": content["delivery_date"]})
+            else:
+                res = make_response('')
+                res.mimetype = 'application/json'
+                res.status_code = 400
+                return res
 
+            client.put(load)
+
+            res = make_response('See Other')
+            res.mimetype = 'application/json'
+            res.headers.set('Location', request.base_url + str(load.id))
+            res.status_code = 303
+            return res
+
+        else:
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
