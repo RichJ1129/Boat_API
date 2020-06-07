@@ -30,7 +30,7 @@ def verify_jwt():
 
 @bp.route('/', methods=['POST', 'GET'])
 def boats_post_get():
-    if request.method == 'POST':
+    if request.method == 'POST' and 'application/json' in request.accept_mimetypes:
         user_sub = str(verify_jwt())
         if user_sub == "Unauthorized Error":
             res = make_response("Unauthorized Error")
@@ -64,9 +64,9 @@ def boats_post_get():
 
             return res
 
-    elif request.method == 'GET':
+    elif request.method == 'GET' and 'application/json' in request.accept_mimetypes:
         query = client.query(kind=constants.boats)
-        q_limit = int(request.args.get('limit', '40'))  # change to 5
+        q_limit = int(request.args.get('limit', '5'))  # change to 5
         q_offset = int(request.args.get('offset', '0'))
         l_iterator = query.fetch(limit=q_limit, offset=q_offset)
         pages = l_iterator.pages
@@ -82,7 +82,12 @@ def boats_post_get():
         output = {"boats": results}
         if next_url:
             output["next"] = next_url
-        return json.dumps(output)
+
+        res = make_response(json.dumps(output))
+        res.mimetype = 'application/json'
+        res.status_code = 200
+
+        return res
 
     else:
         res = make_response('Method Not Allowed')
@@ -117,6 +122,11 @@ def boats_put_patch(id):
                 res.mimetype = 'application/json'
                 res.headers.set('Location', 'http://127.0.0.1/boats/' + str(boats.id))
                 res.status_code = 303
+        else:
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
 
     elif request.method == 'PATCH':
         if 'application/json' in request.accept_mimetypes:

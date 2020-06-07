@@ -39,7 +39,7 @@ def loads_get_post():
         return res
     elif request.method == 'GET':
         query = client.query(kind=constants.loads)
-        q_limit = int(request.args.get('limit', '40'))
+        q_limit = int(request.args.get('limit', '5'))
         q_offset = int(request.args.get('offset', '0'))
         l_iterator = query.fetch(limit=q_limit, offset=q_offset)
         pages = l_iterator.pages
