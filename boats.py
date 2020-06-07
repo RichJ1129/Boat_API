@@ -282,6 +282,11 @@ def add_remove_load(bid, lid):
             res.mimetype = 'application/json'
             res.status_code = 200
             return res
+    else:
+        res = make_response('Method Not Allowed')
+        res.mimetype = 'application/json'
+        res.status_code = 405
+        return res
 
 
 @bp.route('/<id>', methods=['DELETE'])
@@ -323,6 +328,11 @@ def boats_delete(id):
                 res.mimetype = 'application/json'
                 res.status_code = 403
                 return res
+    else:
+        res = make_response('Method Not Allowed')
+        res.mimetype = 'application/json'
+        res.status_code = 405
+        return res
 
 
 
