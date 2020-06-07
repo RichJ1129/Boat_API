@@ -118,3 +118,35 @@ def loads_put_patch(id):
             res.mimetype = 'application/json'
             res.status_code = 406
             return res
+
+
+@bp.route('/<id>', methods=['DELETE'])
+def loads_delete(id):
+    if request.method == 'DELETE' and 'application/json' in request.accept_mimetypes:
+        load_key = client.key(constants.loads, int(id))
+        load = client.get(load_key)
+        client.delete(load_key)
+
+        query = client.query(kind=constants.boats)
+        query_iter = query.fetch()
+
+        for entity in query_iter:
+            if str(load.key.id) in entity["loads"]:
+                loads_list = entity["loads"]
+                loads_list.remove(str(load.key.id))
+                if not loads_list:
+                    loads_list = "NULL"
+                    entity.update({"loads": loads_list})
+                else:
+                    entity.update({"loads": loads_list})
+                client.put(entity)
+
+        res = make_response('No Content')
+        res.mimetype = 'application/json'
+        res.status_code = 204
+        return res
+    else:
+        res = make_response('Forbidden')
+        res.mimetype = 'application/json'
+        res.status_code = 403
+        return res
