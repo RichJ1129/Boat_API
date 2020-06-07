@@ -110,9 +110,6 @@ def boats_put_patch(id):
                               "length": content["length"],
                               "self": request.base_url + str(boats.key.id)})
 
-                query = client.query(kind=constants.boats)
-                query_iter = query.fetch()
-
                 client.put(boats)
 
                 res = make_response('See Other')
@@ -199,9 +196,13 @@ def add_remove_load(bid, lid):
 
 
             if boats['loads'] == "NULL":
-                boats.update({"loads": str(loads.key.id)})
+                loads_list = []
+                loads_list.append(str(loads.key.id))
+                boats.update({"loads": loads_list})
             else:
-                boats.update({"loads": boats['loads'].append(str(loads.key.id))})
+                loads_list = boats['loads']
+                loads_list.append(str(loads.key.id))
+                boats.update({"loads": loads_list})
 
             boat_result = {"id": str(boats.key.id),
                            "name": boats['name'],
@@ -233,17 +234,40 @@ def add_remove_load(bid, lid):
             loads = client.get(key=loads_key)
 
             if boats is None:
-                res = make_response('Boats Not Found')
+                res = make_response('Boat Not Found')
                 res.mimetype = 'application/json'
                 res.status_code = 404
                 return res
             elif loads is None:
-                res = make_response('Loads Not Found')
+                res = make_response('Load Not Found')
                 res.mimetype = 'application/json'
                 res.status_code = 404
                 return res
 
-            res = make_response("H")
+            loads_list = boats["loads"]
+
+            loads_list.remove(str(loads.key.id))
+
+            if not loads_list:
+                loads_list = "NULL"
+                boats.update({"loads": loads_list})
+            else:
+                boats.update({"loads": loads_list})
+
+            loads.update({"boat": "NULL"})
+
+            client.put(boats)
+            client.put(loads)
+
+            boat_result = {"id": str(boats.key.id),
+                           "name": boats['name'],
+                           "type": boats['type'],
+                           "length": boats['length'],
+                           "owner": boats['owner'],
+                           "loads": boats['loads'],
+                           "self": request.base_url + str(boats.key.id)}
+
+            res = make_response(json.dumps(boat_result))
             res.mimetype = 'application/json'
             res.status_code = 200
             return res
@@ -264,6 +288,15 @@ def boats_delete(id):
                 boat_entity = client.get(boats_key)
                 if boat_entity['owner'] == user_sub:
                     client.delete(boats_key)
+
+                    query = client.query(kind=constants.loads)
+                    query_iter = query.fetch()
+
+                    for entity in query_iter:
+                        if entity["boat"] == str(boat_entity.key.id):
+                            entity.update({"boat": "NULL"})
+                            client.put(entity)
+
 
                     res = make_response('No Content')
                     res.mimetype = 'application/json'
