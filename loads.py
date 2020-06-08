@@ -21,8 +21,8 @@ def loads_get_post():
         new_loads.update({'weight': content['weight'],
                           'content': content['content'],
                           'delivery_date': content['delivery_date'],
-                          'boat': 'NULL',
-                          'self': request.base_url + str(new_loads.key.id)})
+                          'boat': 'NULL'
+                          })
 
         client.put(new_loads)
 
@@ -81,15 +81,15 @@ def loads_put_patch(id):
 
             load.update({"weight": content["weight"],
                          "content": content["content"],
-                         "delivery_date": content["delivery_date"],
-                         "self": request.base_url + str(load.key.id)})
+                         "delivery_date": content["delivery_date"]
+                         })
 
             client.put(load)
 
-            res = make_response('See Other')
+            res = make_response('')
             res.mimetype = 'application/json'
-            res.headers.set('Location', 'http://127.0.0.1/loads/' + str(load.id))
-            res.status_code = 303
+            res.status_code = 200
+            return res
         else:
             res = make_response("Not Acceptable")
             res.mimetype = 'application/json'
@@ -106,9 +106,9 @@ def loads_put_patch(id):
 
             if 'weight' in content_keys:
                 load.update({"weight": content["weight"]})
-            elif 'content' in content_keys:
+            elif "content" in content_keys:
                 load.update({"content": content["content"]})
-            elif 'delivery_date' in content_keys:
+            elif "delivery_date" in content_keys:
                 load.update({"delivery_date": content["delivery_date"]})
             else:
                 res = make_response('')
@@ -118,11 +118,11 @@ def loads_put_patch(id):
 
             client.put(load)
 
-            res = make_response('See Other')
+            res = make_response('')
             res.mimetype = 'application/json'
-            res.headers.set('Location', request.base_url + str(load.id))
-            res.status_code = 303
+            res.status_code = 200
             return res
+
     elif request.method == 'GET':
         if 'application/json' in request.accept_mimetypes:
             loads_key = client.key(constants.loads, int(id))

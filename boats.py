@@ -44,8 +44,7 @@ def boats_post_get():
                               "type": content["type"],
                               "length": content["length"],
                               "loads": 'NULL',
-                              "owner": user_sub,
-                              "self": request.base_url + str(new_boats.key.id)})
+                              "owner": user_sub})
 
             client.put(new_boats)
 
@@ -112,15 +111,14 @@ def boats_put_patch_get(id):
 
                 boats.update({"name": content["name"],
                               "type": content["type"],
-                              "length": content["length"],
-                              "self": request.base_url + str(boats.key.id)})
+                              "length": content["length"]})
 
                 client.put(boats)
 
-                res = make_response('See Other')
+                res = make_response('')
                 res.mimetype = 'application/json'
-                res.headers.set('Location', 'http://127.0.0.1/boats/' + str(boats.id))
-                res.status_code = 303
+                res.status_code = 200
+                return res
         else:
             res = make_response("Not Acceptable")
             res.mimetype = 'application/json'
@@ -156,10 +154,9 @@ def boats_put_patch_get(id):
 
                 client.put(boats)
 
-                res = make_response('See Other')
+                res = make_response('')
                 res.mimetype = 'application/json'
-                res.headers.set('Location', request.base_url + str(boats.id))
-                res.status_code = 303
+                res.status_code = 200
                 return res
 
         else:
