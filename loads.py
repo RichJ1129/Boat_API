@@ -16,53 +16,67 @@ client_secret = "xeCqwxUqsKTZa2pmyKfFeTnL"
 @bp.route('/', methods=['POST', 'GET'])
 def loads_get_post():
     if request.method == 'POST':
-        content = request.get_json()
-        new_loads = datastore.entity.Entity(key=client.key(constants.loads))
-        new_loads.update({'weight': content['weight'],
-                          'content': content['content'],
-                          'delivery_date': content['delivery_date'],
-                          'boat': 'NULL'
-                          })
+        if 'application/json' in request.accept_mimetypes:
+            content = request.get_json()
+            new_loads = datastore.entity.Entity(key=client.key(constants.loads))
+            new_loads.update({'weight': content['weight'],
+                              'content': content['content'],
+                              'delivery_date': content['delivery_date'],
+                              'boat': 'NULL'
+                              })
 
-        client.put(new_loads)
+            client.put(new_loads)
 
-        load_result = {"id": str(new_loads.key.id),
-                       "weight": content['weight'],
-                       "content": content['content'],
-                       "delivery_date": content['delivery_date'],
-                       "boat": "NULL",
-                       "self": request.base_url + str(new_loads.key.id)}
+            load_result = {"id": str(new_loads.key.id),
+                           "weight": content['weight'],
+                           "content": content['content'],
+                           "delivery_date": content['delivery_date'],
+                           "boat": "NULL",
+                           "self": request.base_url + str(new_loads.key.id)}
 
-        res = make_response(json.dumps(load_result))
-        res.mimetype = 'application/json'
-        res.status_code = 201
+            res = make_response(json.dumps(load_result))
+            res.mimetype = 'application/json'
+            res.status_code = 201
 
-        return res
+            return res
+
+        else:
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
 
     elif request.method == 'GET':
-        query = client.query(kind=constants.loads)
-        q_limit = int(request.args.get('limit', '5'))
-        q_offset = int(request.args.get('offset', '0'))
-        l_iterator = query.fetch(limit=q_limit, offset=q_offset)
-        pages = l_iterator.pages
-        results = list(next(pages))
-        if l_iterator.next_page_token:
-            next_offset = q_offset + q_limit
-            next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+        if 'application/json' in request.accept_mimetypes:
+            query = client.query(kind=constants.loads)
+            q_limit = int(request.args.get('limit', '5'))
+            q_offset = int(request.args.get('offset', '0'))
+            l_iterator = query.fetch(limit=q_limit, offset=q_offset)
+            pages = l_iterator.pages
+            results = list(next(pages))
+            if l_iterator.next_page_token:
+                next_offset = q_offset + q_limit
+                next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+            else:
+                next_url = None
+            for e in results:
+                e["id"] = e.key.id
+                e["self"] = request.base_url + str(e.key.id)
+            output = {"loads": results}
+            if next_url:
+                output["next"] = next_url
+
+            res = make_response(json.dumps(output))
+            res.mimetype = 'application/json'
+            res.status_code = 200
+
+            return res
+
         else:
-            next_url = None
-        for e in results:
-            e["id"] = e.key.id
-            e["self"] = request.base_url + str(e.key.id)
-        output = {"loads": results}
-        if next_url:
-            output["next"] = next_url
-
-        res = make_response(json.dumps(output))
-        res.mimetype = 'application/json'
-        res.status_code = 200
-
-        return res
+            res = make_response("Not Acceptable")
+            res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
 
     else:
         res = make_response('Method Not Allowed')
