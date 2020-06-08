@@ -94,6 +94,7 @@ def boats_post_get():
             res.status_code = 200
 
             return res
+
         else:
             res = make_response("Not Acceptable")
             res.mimetype = 'application/json'
@@ -121,6 +122,12 @@ def boats_put_patch_get(id):
                 content = request.get_json()
                 boats_key = client.key(constants.boats, int(id))
                 boats = client.get(key=boats_key)
+
+                if boats['owner'] != user_sub:
+                    res = make_response("Forbidden")
+                    res.mimetype = 'application/json'
+                    res.status_code = 403
+                    return res
 
                 boats.update({"name": content["name"],
                               "type": content["type"],
@@ -161,6 +168,12 @@ def boats_put_patch_get(id):
 
                 content_keys = content.keys()
 
+                if boats['owner'] != user_sub:
+                    res = make_response("Forbidden")
+                    res.mimetype = 'application/json'
+                    res.status_code = 403
+                    return res
+
                 if 'name' in content_keys:
                     boats.update({"name": content["name"]})
                 elif 'type' in content_keys:
@@ -196,27 +209,40 @@ def boats_put_patch_get(id):
 
     elif request.method == 'GET':
         if 'application/json' in request.accept_mimetypes:
-            boats_key = client.key(constants.boats, int(id))
-            boats = client.get(key=boats_key)
-
-            if boats == None:
-                res = make_response('Not Found')
+            user_sub = str(verify_jwt())
+            if user_sub == "Unauthorized Error":
+                res = make_response("Unauthorized Error")
                 res.mimetype = 'application/json'
-                res.status_code = 404
+                res.status_code = 401
                 return res
+            else:
+                boats_key = client.key(constants.boats, int(id))
+                boats = client.get(key=boats_key)
 
-            boat_result = {"id": str(boats.key.id),
-                           "name": boats['name'],
-                           "type": boats['type'],
-                           "length": boats['length'],
-                           "owner": boats['owner'],
-                           "loads": boats['loads'],
-                           "self": request.base_url + str(boats.key.id)}
+                if boats['owner'] != user_sub:
+                    res = make_response("Forbidden")
+                    res.mimetype = 'application/json'
+                    res.status_code = 403
+                    return res
 
-            res = make_response(json.dumps(boat_result))
-            res.mimetype = 'application/json'
-            res.status_code = 200
-            return res
+                if boats == None:
+                    res = make_response('Not Found')
+                    res.mimetype = 'application/json'
+                    res.status_code = 404
+                    return res
+
+                boat_result = {"id": str(boats.key.id),
+                               "name": boats['name'],
+                               "type": boats['type'],
+                               "length": boats['length'],
+                               "owner": boats['owner'],
+                               "loads": boats['loads'],
+                               "self": request.base_url + str(boats.key.id)}
+
+                res = make_response(json.dumps(boat_result))
+                res.mimetype = 'application/json'
+                res.status_code = 200
+                return res
 
         else:
             res = make_response("Not Acceptable")
@@ -245,6 +271,12 @@ def add_remove_load(bid, lid):
                 loads_key = client.key(constants.loads, int(lid))
                 boats = client.get(key=boats_key)
                 loads = client.get(key=loads_key)
+
+                if boats['owner'] != user_sub:
+                    res = make_response("Forbidden")
+                    res.mimetype = 'application/json'
+                    res.status_code = 403
+                    return res
 
                 if boats is None:
                     res = make_response('Boats Not Found')
@@ -311,6 +343,12 @@ def add_remove_load(bid, lid):
                 boats = client.get(key=boats_key)
                 loads = client.get(key=loads_key)
 
+                if boats['owner'] != user_sub:
+                    res = make_response("Forbidden")
+                    res.mimetype = 'application/json'
+                    res.status_code = 403
+                    return res
+
                 if boats is None:
                     res = make_response('Boat Not Found')
                     res.mimetype = 'application/json'
@@ -343,7 +381,7 @@ def add_remove_load(bid, lid):
                                "length": boats['length'],
                                "owner": boats['owner'],
                                "loads": boats['loads'],
-                               "self": boats['self']}
+                               "self": request.base_url + str(boats.key.id)}
 
                 res = make_response(json.dumps(boat_result))
                 res.mimetype = 'application/json'
