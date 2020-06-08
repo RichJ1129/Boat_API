@@ -86,7 +86,14 @@ def loads_put_patch(id):
 
             client.put(load)
 
-            res = make_response('')
+            load_result = {"id": str(load.key.id),
+                           "weight": load['weight'],
+                           "content": load['content'],
+                           "delivery_date": load['delivery_date'],
+                           "boat": load['boat'],
+                           "self": request.base_url + str(load.key.id)}
+
+            res = make_response(json.dumps(load_result))
             res.mimetype = 'application/json'
             res.status_code = 200
             return res
@@ -118,7 +125,14 @@ def loads_put_patch(id):
 
             client.put(load)
 
-            res = make_response('')
+            load_result = {"id": str(load.key.id),
+                           "weight": load['weight'],
+                           "content": load['content'],
+                           "delivery_date": load['delivery_date'],
+                           "boat": load['boat'],
+                           "self": request.base_url + str(load.key.id)}
+
+            res = make_response(json.dumps(load_result))
             res.mimetype = 'application/json'
             res.status_code = 200
             return res
