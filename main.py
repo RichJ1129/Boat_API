@@ -26,7 +26,7 @@ client = datastore.Client()
 client_id = '155864832310-rqqbf4p2d9pjgf2qttitn62h4duun8oh.apps.googleusercontent.com'
 client_secret = "xeCqwxUqsKTZa2pmyKfFeTnL"
 
-redirect_uri = 'http://127.0.0.1:8080/oauth'
+redirect_uri = 'https://josephri-fp.ue.r.appspot.com/oauth'
 
 scope = ['https://www.googleapis.com/auth/userinfo.email',
          'https://www.googleapis.com/auth/userinfo.profile']
