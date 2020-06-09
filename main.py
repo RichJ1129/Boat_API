@@ -23,8 +23,8 @@ app.secret_key = os.urandom(24)
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 client = datastore.Client()
-client_id = '155864832310-rqqbf4p2d9pjgf2qttitn62h4duun8oh.apps.googleusercontent.com'
-client_secret = "xeCqwxUqsKTZa2pmyKfFeTnL"
+client_id = ''
+client_secret = ""
 
 redirect_uri = 'https://josephri-fp.ue.r.appspot.com/oauth'
 
