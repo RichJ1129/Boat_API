@@ -9,8 +9,8 @@ import constants
 client = datastore.Client()
 
 bp = Blueprint('boats', __name__, url_prefix='/boats')
-client_id = '155864832310-rqqbf4p2d9pjgf2qttitn62h4duun8oh.apps.googleusercontent.com'
-client_secret = "xeCqwxUqsKTZa2pmyKfFeTnL"
+client_id = ''
+client_secret = ""
 
 
 def verify_jwt():
