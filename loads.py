@@ -9,8 +9,8 @@ import constants
 client = datastore.Client()
 
 bp = Blueprint('loads', __name__, url_prefix='/loads')
-client_id = ''
-client_secret = ""
+client_id = os.environ.get('my_id')
+client_secret = os.environ.get('my_secret')
 
 
 @bp.route('/', methods=['POST', 'GET'])
